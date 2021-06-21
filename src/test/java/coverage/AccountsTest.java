@@ -5,15 +5,26 @@ import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 import static io.restassured.RestAssured.given;
 import javax.json.Json;
-import javax.json.JsonObject;
 import static org.hamcrest.CoreMatchers.equalTo;
 
 @QuarkusTest
 public class AccountsTest {
 
+    String exampleAccountJson() {
+
+      return Json.createObjectBuilder()
+              .add("name", "Test Account")
+              .add("address", "Main St")
+              .add("city", "Baton Rouge")
+              .add("state", "LA")
+              .add("zip", "70113")
+              .build()
+              .toString();  
+    }
+
     @Test
     public void testAccountsEndpoint() {
-      Account.deleteAll();      
+    
         given()
           .when().get("/accounts")
           .then()
@@ -23,13 +34,7 @@ public class AccountsTest {
     @Test
     public void testAccountAddAndDeleteAll() {
 
-      JsonObject a = Json.createObjectBuilder()
-                        .add("name", "Test Account")
-                        .add("address", "Main St")
-                        .add("city", "Baton Rouge")
-                        .add("state", "LA")
-                        .add("zip", "70113")
-                        .build();
+      String a = exampleAccountJson();
 
       given()
         .when().delete("/accounts")
@@ -38,7 +43,7 @@ public class AccountsTest {
 
       given()
         .contentType(ContentType.JSON)
-        .body(a.toString())
+        .body(a)
         .when().post("/accounts")
         .then()
           .statusCode(200);
@@ -58,13 +63,7 @@ public class AccountsTest {
     @Test
     public void testDeleteAccount() {
 
-      JsonObject a = Json.createObjectBuilder()
-                        .add("name", "Test Account")
-                        .add("address", "Main St")
-                        .add("city", "Baton Rouge")
-                        .add("state", "LA")
-                        .add("zip", "70113")
-                        .build();
+      String a = exampleAccountJson();
 
       given()
         .when()
@@ -74,7 +73,7 @@ public class AccountsTest {
 
       given()
         .contentType(ContentType.JSON)
-        .body(a.toString())
+        .body(a)
         .when()
           .post("/accounts")
         .then()
