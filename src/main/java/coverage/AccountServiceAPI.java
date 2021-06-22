@@ -112,6 +112,9 @@ public class AccountServiceAPI {
   }
 
   /* 
+
+  Like the POST, this method needs the validation code written. 
+
   This is the most complex method in this program. It combines all the features of the other methods, plus some other complexities. 
 
   The <Account>.update method does not actually return a "succeeded" boolean. Like create, it returns a void. So, we need to verify that the record being updated actually exists before we try to update it. Therefore, we end up with two reactive calls. The first is the findByIdOptional like we saw above. The other is the update method. The complexity is that we should only call the update method if the account actually exists. Therfore, the update method must be a part of the onItem clause  of the findByIdOptional call. The update call is nested inside. 
