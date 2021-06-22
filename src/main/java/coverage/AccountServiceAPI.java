@@ -24,15 +24,15 @@ public class AccountServiceAPI {
   @Produces(MediaType.APPLICATION_JSON)
   public Uni<Response> list() {
     /* 
-    The method returns a Response wrapped in the Uni class from the Quarkus Reactive library called Mutiny. 
+    This method returns a Response wrapped in the Uni class from the Quarkus Reactive library called Mutiny. 
     
     First, we ask the Account class to list all the accounts in the database. This is a reactive (Mutiny / asynchronous) call so we have to set up the instructions on what to do when it succeeds (onItem) and what to do if it fails.  In either case we need to return a HTTP reponse to the caller. 
 
     In the onItem branch, transform the item (account list) into a Reponse with status ok (200) and put the list of accounts in the body (entity) of the reponse. 
     
-    In the case of failure, we recover from the failure by supplying an HTTP Response that there was a server error. In addition, we received the information on what actually caused the failure (err), so pass that back in the body of the reponse. 
+    In the case of failure, we recover from the failure by supplying an HTTP Response that there was a server error since this method always succeeds even if there are no records in the database. So, if we get onFailure, it has to be a more catastrophic error. We received the information on what actually caused the failure (err), so pass that back in the body of the reponse. 
     
-    Both the transform method and the recoverWithItem method take the response returned from the lambda and wraps it in a Uni to satisfy the return type of the list() method.
+    Both the transform method and the recoverWithItem method take the response returned from the lambda and wraps it in a Uni to satisfy the return type of the list() method. So, we can just return the Response from these methods and Quarkus magic makes it work for us. 
     */
 
     return Account
@@ -46,9 +46,9 @@ public class AccountServiceAPI {
   }
 
   /* 
-  The Path annoteated here is concatenated onto the previous Path specified at the class level. So, the path to retrieve a specific account record is '.../accounts/{accountId}' where accountId is and actual valid hex object id.
+  The Path annotated here is concatenated onto the previous Path specified at the class level. So, the path to retrieve a specific account record is '.../accounts/{accountId}' where accountId is an actual valid hex object id.
 
-  The PathParam annotation tells Quarlus that the accountId passed in on the path is to be placed in the method argument 'id'.
+  The PathParam annotation in the method signature tells Quarkus that the accountId passed in on the path is to be placed in the method argument 'id'.
   */
 
   @GET
@@ -56,13 +56,17 @@ public class AccountServiceAPI {
   @Produces(MediaType.APPLICATION_JSON)
   public Uni<Response> getAccount(@PathParam("accountId") String id) {
     /* 
-    We first try to find the account given the passed in id. The findByIdOptional method will return an Optional of type Account. An optional is the modern way to bypass a lot of null checking plus some other enhancements. Basically, the Optional itself is never null. But, it may or may not contain an Account. 
+    We first try to find the account given the id passed in. The findByIdOptional method will return an Optional of type Account. An optional is the modern way to bypass a lot of null checking plus some other enhancements. Basically, the Optional itself is never null. But, it may or may not contain an Account within itself. 
 
-    Contrast findByIdOptional to plain findById. The latter will return null if it does not find an Account with the provided id.@interface
+    Contrast findByIdOptional to plain findById. The latter will return null if it does not find an Account with the provided id.
 
-    In the onItem "branch", we call transform to create an appropriate Response. The ao is an optional of Account. Check if the optional actually contains an account (isPresent). If so, return a Response with ok and the entity set to the contents of the optional (ao.get). If there is not an account present, return a Response that states that the given account was not found. 
+    In the onItem "branch", we call transform to create an appropriate Response. The variable, ao, is an optional of Account. 
+    
+    Check if the optional actually contains an account (isPresent). If so, return a Response with ok and the entity set to the contents of the optional (ao.get) so that the account information is passed back in the body. 
+    
+    If there is not an account present, return a Response that states that the given account was not found. 
 
-    Since the findByIdOptional produces an item (ao) whether it finds an account or not, the failure branch means we've had a more catastrophic failure. That is, it is not simply that we couldn't find the account which is actually a successful completion. The failure is actually something like the network is down or the database is unreachable. Therefore, return a Response stating there is an internal server error, and also pass back the error object as the body of the reponse. 
+    Since the findByIdOptional produces an item (ao) whether it finds an account or not, the failure branch means we've had a more catastrophic failure. That is, it is not simply that we couldn't find the account -- which is actually a successful completion. The failure is actually something like the network is down or the database is unreachable. Therefore, return a Response stating there is an internal server error, and also pass back the error object as the body of the reponse. 
 
     */
     return Account
@@ -90,12 +94,10 @@ public class AccountServiceAPI {
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   public Uni<Response> addAccount(Account a) {
-    // Need to validate account
-
     /* 
-    First a todo: the account object needs to be validated. Quarkus fills the Account object by looking in the JSON string for elements whose key is the name of one of the fields of the Account class. If it finds one, it places that JSON element in the appropriate field of the passed in account object. It ignores all other fields. So, if someone passes in JSON that doesn't have some or all of the data in the JSON, then the Account object could be empty or invalid if it requires certain fields to be supplied.
+    First a todo: the account object needs to be validated. Quarkus fills the Account object by looking in the JSON string for elements whose key is the name of one of the fields of the Account class (name, city, etc.). If it finds one, it places that JSON element in the appropriate field of the passed in account object. It ignores all other fields. So, if someone passes in JSON that doesn't have some or all of the required data in the JSON string, then the Account object could be empty or invalid.
 
-    For now, we assume valid account data has been passed in. We tell the account to persist (save / store) itself. This is a reactive call like the others, so we need to handle success (onItem) and failure (onFailure). The persist method actually returns a void (Uni<Void> to be precise), so the lambda in the transform gets a null parameter (v) -- do not attempt to use it. Return a reponse indicating that the account was created.@interface
+    For now, we assume valid account data has been passed in. We tell the account to persist (save / store) itself. This is a reactive call like the others, so we need to handle success (onItem) and failure (onFailure). The persist method actually returns a void (Uni<Void> to be precise), so the lambda in the transform gets a null parameter (v) -- do not attempt to use it. Return a reponse indicating that the account was created. 
 
     */
 
@@ -114,13 +116,15 @@ public class AccountServiceAPI {
 
   The <Account>.update method does not actually return a "succeeded" boolean. Like create, it returns a void. So, we need to verify that the record being updated actually exists before we try to update it. Therefore, we end up with two reactive calls. The first is the findByIdOptional like we saw above. The other is the update method. The complexity is that we should only call the update method if the account actually exists. Therfore, the update method must be a part of the onItem clause  of the findByIdOptional call. The update call is nested inside. 
 
-  The main method (updateAccount) wants to return a Uni<Response> to Quarkus. Remember, whenever "transform" is called, it takes whatever is return from its lambda and wraps it in a Uni. With nested reactive calls, the inner one (a1.update)returns a Uni<Response> on its transform. On the outer one, if we use just the normal "transform", that transform will receive the Uni<Response> and wrap it in a Uni. So, we end up with a Uni<Uni<Response>> which makes my head hurt, and it is not want we want to return from the method -- we need to return Uni<Response>. 
+  The main method (updateAccount) wants to return a Uni<Response> to Quarkus. Remember, whenever "transform" is called, it takes whatever is return from its lambda and wraps it in a Uni. With nested reactive calls, the inner one (a1.update)returns a Uni<Response> coming out of its transform. 
+  
+  On the outer one, if we use just the normal "transform", it will receive the Uni<Response> from the inner and wrap it in a Uni. So, we end up with a Uni<Uni<Response>> which makes my head hurt, and it is not want we want to return from the method -- we need to return Uni<Response>. 
   
   To fix the Uni<Uni<Response>> problem, we use transformToUni for the outer onItem. Essentially, transformToUni is expecting that it will receive a Uni to return. So, it just skips wrapping the Uni<Response> in another Uni and merely returns the Uni<Response> directly. 
 
-  One more complexity. Because of the way that Panache (ActiveRecord pattern) works, if you are trying to manipulate an existing record in the database, the Account object has to be created by querying the database. The incoming account (a) is just a POJO. The database does not know about it. So, we use the accountId path parameter to perform the findByIdOptional command like before. If it finds it the optional will have an Account present, and that account the database gave us so it is linked. 
+  One more complexity. Because of the way that Panache (ActiveRecord pattern) works, if you are trying to update an existing record in the database, the Account object has to be created by querying the database. The incoming account (a) is just a POJO. The database does not know about it. So, we use the accountId path parameter to perform the findByIdOptional command like before. If it finds it, the optional will have an Account present, and that account object the database gave us so it is linked. 
 
-  Once we have a linked account (a1), we need to update all the fields in that account (a1) with the fields passed into the main method in the account (a) which was created from the JSON body of the request. Once that is complete, we can then update the linked account (a1) and when that completes (onItem), return a success Response. 
+  Once we have a linked account (a1), we need to update all the fields in that account (a1) with the fields passed into the main method in the account parameter (a) which was created from the JSON body of the request. We can then update the linked account (a1) and when that completes (onItem), return a success Response. 
 
   */
 
@@ -139,7 +143,7 @@ public class AccountServiceAPI {
         ao -> {
           if (ao.isPresent()) {
             /* 
-            Get the account from the optional. a1 is linked to the database and it has all the current values of the record. 
+            We found the account. Get the account object from the optional. a1 is linked to the database and it has all the current values of the record. 
             */
             Account a1 = ao.get();
 
