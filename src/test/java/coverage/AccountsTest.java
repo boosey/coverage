@@ -57,7 +57,7 @@ public class AccountsTest {
       .when()
       .post("/accounts")
       .then()
-      .statusCode(200);
+      .statusCode(201);
 
     given()
       .when()
@@ -81,7 +81,7 @@ public class AccountsTest {
       .when()
       .post("/accounts")
       .then()
-      .statusCode(200);
+      .statusCode(201);
 
     LinkedHashMap<String, String> a_map = given()
       .when()
@@ -126,7 +126,7 @@ public class AccountsTest {
       .when()
       .post("/accounts")
       .then()
-      .statusCode(200);
+      .statusCode(201);
 
     String id = given()
       .when()
@@ -170,7 +170,7 @@ public class AccountsTest {
       .when()
       .post("/accounts")
       .then()
-      .statusCode(200);
+      .statusCode(201);
 
     String id = given()
       .when()
