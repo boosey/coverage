@@ -51,20 +51,23 @@ public class AccountsTest {
 
     given().when().delete("/accounts").then().statusCode(200);
 
-    given()
+    String body = given()
       .contentType(ContentType.JSON)
       .body(a)
       .when()
       .post("/accounts")
       .then()
-      .statusCode(201);
+      .statusCode(201)
+      .extract()
+      .response()
+      .asString();
 
     given()
       .when()
-      .get("/accounts")
+      .get(body)
       .then()
       .statusCode(200)
-      .body("[0].name", equalTo(accountName));
+      .body("name", equalTo(accountName));
 
     given().when().delete("/accounts").then().statusCode(200);
   }
