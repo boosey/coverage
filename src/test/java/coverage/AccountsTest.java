@@ -147,6 +147,18 @@ public class AccountsTest {
   }
 
   @Test
+  public void failOnBadAccountId() {
+    given().when().delete("/accounts").then().statusCode(200);
+
+    given()
+      .pathParam("id", "60d1434f7fe4d40a3c74d8c7")
+      .when()
+      .get("/accounts/{id}")
+      .then()
+      .statusCode(404);
+  }
+
+  @Test
   public void testDeleteAccount() {
     String a = exampleAccountJson();
 

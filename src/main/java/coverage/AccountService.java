@@ -1,7 +1,6 @@
 package coverage;
 
 import io.smallrye.mutiny.Uni;
-import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -20,8 +19,15 @@ public class AccountService {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public Uni<List<Account>> list() {
-    return Account.listAll();
+  public Uni<Response> list() {
+    return Account
+      .listAll()
+      .onItem()
+      .transform(accts -> Response.ok().entity(accts).build())
+      .onFailure()
+      .recoverWithItem(
+        err -> Response.status(Status.INTERNAL_SERVER_ERROR).entity(err).build()
+      );
   }
 
   @GET
@@ -29,22 +35,36 @@ public class AccountService {
   @Produces(MediaType.APPLICATION_JSON)
   public Uni<Response> getAccount(@PathParam("accountId") String id) {
     return Account
-      .findById(new ObjectId(id))
+      .findByIdOptional(new ObjectId(id))
       .onItem()
-      .transform(a -> Response.ok().entity(a).build())
+      .transform(
+        a -> {
+          if (a.isPresent()) {
+            return Response.ok().entity(a).build();
+          } else {
+            return Response.status(Status.NOT_FOUND).entity(a).build();
+          }
+        }
+      )
       .onFailure()
-      .transform(err -> err);
+      .recoverWithItem(
+        err -> Response.status(Status.INTERNAL_SERVER_ERROR).entity(err).build()
+      );
   }
 
   @POST
   @Consumes(MediaType.APPLICATION_JSON)
   public Uni<Response> addAccount(Account a) {
+    // Need to validate account
+
     return a
       .persist()
       .onItem()
       .transform(v -> Response.ok().build())
       .onFailure()
-      .recoverWithItem(Response.status(Status.NOT_ACCEPTABLE).build());
+      .recoverWithItem(
+        err -> Response.status(Status.INTERNAL_SERVER_ERROR).entity(err).build()
+      );
   }
 
   @PUT
@@ -55,16 +75,29 @@ public class AccountService {
     Account a
   ) {
     return Account
-      .<Account>findById(new ObjectId(id))
+      .<Account>findByIdOptional(new ObjectId(id))
       .onItem()
       .transformToUni(
-        a1 -> {
-          a1.name = a.name;
-          a1.address = a.address;
-          a1.city = a.city;
-          a1.zip = a.zip;
-          return a1.update().onItem().transform(v -> Response.ok().build());
+        ao -> {
+          if (ao.isPresent()) {
+            Account a1 = ao.get();
+
+            a1.name = a.name;
+            a1.address = a.address;
+            a1.city = a.city;
+            a1.zip = a.zip;
+
+            return a1.update().onItem().transform(v -> Response.ok().build());
+          } else {
+            return Uni
+              .createFrom()
+              .item(Response.status(Status.NOT_FOUND).entity(a).build());
+          }
         }
+      )
+      .onFailure()
+      .recoverWithItem(
+        err -> Response.status(Status.INTERNAL_SERVER_ERROR).entity(err).build()
       );
   }
 
