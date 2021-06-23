@@ -51,7 +51,7 @@ public class AccountsTest {
 
     given().when().delete("/accounts").then().statusCode(200);
 
-    String body = given()
+    String addedAccountURI = given()
       .contentType(ContentType.JSON)
       .body(a)
       .when()
@@ -64,7 +64,7 @@ public class AccountsTest {
 
     given()
       .when()
-      .get(body)
+      .get(addedAccountURI)
       .then()
       .statusCode(200)
       .body("name", equalTo(accountName));
@@ -78,21 +78,24 @@ public class AccountsTest {
 
     given().when().delete("/accounts").then().statusCode(200);
 
-    given()
+    String addedAccountURI = given()
       .contentType(ContentType.JSON)
       .body(a)
       .when()
       .post("/accounts")
       .then()
-      .statusCode(201);
+      .statusCode(201)
+      .extract()
+      .response()
+      .asString();
 
     LinkedHashMap<String, String> a_map = given()
       .when()
-      .get("/accounts")
+      .get(addedAccountURI)
       .then()
       .statusCode(200)
       .extract()
-      .path("[0]");
+      .path("$");
 
     String id = a_map.get("id");
     a_map.put("name", newName);
@@ -109,10 +112,10 @@ public class AccountsTest {
 
     given()
       .when()
-      .get("/accounts")
+      .get(addedAccountURI)
       .then()
       .statusCode(200)
-      .body("[0].name", equalTo(newName));
+      .body("name", equalTo(newName));
 
     given().when().delete("/accounts").then().statusCode(200);
   }
