@@ -18,7 +18,8 @@ public class ServiceSuper {
       .transform(items -> Response.ok().entity(items).build())
       .onFailure()
       .recoverWithItem(
-        err -> Response.status(Status.INTERNAL_SERVER_ERROR).entity(err).build()
+        error ->
+          Response.status(Status.INTERNAL_SERVER_ERROR).entity(error).build()
       );
   }
 
@@ -28,9 +29,9 @@ public class ServiceSuper {
     return entity
       .onItem()
       .transform(
-        ao -> {
-          if (ao.isPresent()) {
-            return Response.ok().entity(ao.get()).build();
+        item -> {
+          if (item.isPresent()) {
+            return Response.ok().entity(item.get()).build();
           } else {
             return Response.status(Status.NOT_FOUND).build();
           }
@@ -73,8 +74,8 @@ public class ServiceSuper {
       .recoverWithItem(Response.status(Status.INTERNAL_SERVER_ERROR).build());
   }
 
-  public Uni<Response> deleteById(Uni<Boolean> deletedEntity) {
-    return deletedEntity
+  public Uni<Response> deleteById(Uni<Boolean> deleteUni) {
+    return deleteUni
       .onItem()
       .transform(
         succeeded -> {
@@ -97,34 +98,34 @@ public class ServiceSuper {
       .onItem()
       .transformToUni(
         // Received an optional from the find, so we have to check if it is present
-        ao -> {
-          if (ao.isPresent()) {
+        itemOptional -> {
+          if (itemOptional.isPresent()) {
             /* 
             We found the account. Get the account object from the optional. a1 is linked to the database and it has all the current values of the record. 
             */
-            EntitySuper a1 = ao.get();
+            EntitySuper item = itemOptional.get();
 
             /* 
             Update the fields of a1 with all the fields from the account passed into the method (a)
             */
 
-            a1.updateFields(updates);
+            item.updateFields(updates);
 
             /* 
             Now we can update the database with the values in the linked account (a1). This is a reactive call, and so we have to handle its completion (onItem) and return the appropriate Response. 
             
             If something went wrong (onFailure), we know it cannot be that the record doesn't exist because we are only in this code if it does exist. So, the error must be something more catastrphic. This onFailure could occur if the network crashed in-between the call to findByIdOptional and a1.update. 
             */
-            return a1
+            return item
               .update()
               .onItem()
               .transform(v -> Response.ok().build())
               .onFailure()
               .recoverWithItem(
-                err ->
+                error ->
                   Response
                     .status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(err)
+                    .entity(error)
                     .build()
               );
           } else {
