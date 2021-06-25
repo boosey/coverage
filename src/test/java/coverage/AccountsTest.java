@@ -5,7 +5,6 @@ import static org.hamcrest.CoreMatchers.equalTo;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
-// import java.util.LinkedHashMap;
 import javax.inject.Inject;
 import org.jboss.logging.Logger;
 import org.json.JSONObject;

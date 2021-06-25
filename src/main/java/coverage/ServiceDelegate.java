@@ -2,18 +2,18 @@ package coverage;
 
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntity;
 import io.smallrye.mutiny.Uni;
-import java.util.List;
-import java.util.Optional;
+import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
+import org.bson.types.ObjectId;
 
-public class ServiceSuper {
+@ApplicationScoped
+public class ServiceDelegate {
 
-  public <T extends ReactivePanacheMongoEntity> Uni<Response> list(
-    Uni<List<T>> list
-  ) {
-    return list
+  public <S extends ServiceInterface> Uni<Response> list(S svc) {
+    return svc
+      .listUni()
       .onItem()
       .transform(items -> Response.ok().entity(items).build())
       .onFailure()
@@ -23,10 +23,9 @@ public class ServiceSuper {
       );
   }
 
-  public <T extends ReactivePanacheMongoEntity> Uni<Response> findById(
-    Uni<Optional<T>> entity
-  ) {
-    return entity
+  public <S extends ServiceInterface> Uni<Response> findById(S svc, String id) {
+    return svc
+      .findByIdOptionalUni(new ObjectId(id))
       .onItem()
       .transform(
         item -> {
@@ -43,7 +42,11 @@ public class ServiceSuper {
       );
   }
 
-  public Uni<Response> add(ReactivePanacheMongoEntity entity, UriInfo uriInfo) {
+  public <S extends ServiceInterface> Uni<Response> add(
+    S svc,
+    ReactivePanacheMongoEntity entity,
+    UriInfo uriInfo
+  ) {
     return entity
       .persist()
       .onItem()
@@ -66,16 +69,21 @@ public class ServiceSuper {
       );
   }
 
-  public Uni<Response> delete(Uni<Long> deleteUni) {
-    return deleteUni
+  public <S extends ServiceInterface> Uni<Response> delete(S svc) {
+    return svc
+      .deleteAllUni()
       .onItem()
       .transform(count -> Response.ok().entity(count).build())
       .onFailure()
       .recoverWithItem(Response.status(Status.INTERNAL_SERVER_ERROR).build());
   }
 
-  public Uni<Response> deleteById(Uni<Boolean> deleteUni) {
-    return deleteUni
+  public <S extends ServiceInterface> Uni<Response> deleteById(
+    S svc,
+    String id
+  ) {
+    return svc
+      .deleteByIdUni(new ObjectId(id))
       .onItem()
       .transform(
         succeeded -> {
@@ -90,11 +98,13 @@ public class ServiceSuper {
       .recoverWithItem(Response.status(Status.INTERNAL_SERVER_ERROR).build());
   }
 
-  public <T extends EntitySuper> Uni<Response> update(
-    Uni<Optional<T>> entity,
-    T updates
+  public <E extends EntitySuper, S extends ServiceInterface> Uni<Response> update(
+    S svc,
+    String id,
+    E updates
   ) {
-    return entity
+    return svc
+      .findByIdOptionalUni(new ObjectId(id))
       .onItem()
       .transformToUni(
         // Received an optional from the find, so we have to check if it is present
@@ -134,7 +144,7 @@ public class ServiceSuper {
             */
             return Uni
               .createFrom()
-              .item(Response.status(Status.NOT_FOUND).entity(entity).build());
+              .item(Response.status(Status.NOT_FOUND).build());
           }
         }
       )
