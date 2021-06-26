@@ -19,24 +19,20 @@ import org.bson.types.ObjectId;
 @Path("/accounts")
 public class AccountService extends ServiceSuper implements ServiceInterface {
 
-  @Override
   public <T extends EntitySuper> Uni<List<T>> listUni() {
     return Account.listAll();
   }
 
-  @Override
   public <T extends EntitySuper> Uni<Optional<T>> findByIdOptionalUni(
     ObjectId id
   ) {
     return Account.findByIdOptional(id);
   }
 
-  @Override
   public Uni<Long> deleteAllUni() {
     return Account.deleteAll();
   }
 
-  @Override
   public Uni<Boolean> deleteByIdUni(ObjectId id) {
     return Account.deleteById(id);
   }

@@ -1,13 +1,11 @@
 package coverage;
 
 import coverage.framework.EntitySuper;
-import coverage.framework.ServiceDelegate;
 import coverage.framework.ServiceInterface;
 import coverage.framework.ServiceSuper;
 import io.smallrye.mutiny.Uni;
 import java.util.List;
 import java.util.Optional;
-import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -21,27 +19,20 @@ import org.bson.types.ObjectId;
 @Path("/talent")
 public class TalentService extends ServiceSuper implements ServiceInterface {
 
-  @Inject
-  ServiceDelegate delegate;
-
-  @Override
   public <T extends EntitySuper> Uni<List<T>> listUni() {
     return Talent.listAll();
   }
 
-  @Override
   public <T extends EntitySuper> Uni<Optional<T>> findByIdOptionalUni(
     ObjectId id
   ) {
     return Talent.findByIdOptional(id);
   }
 
-  @Override
   public Uni<Long> deleteAllUni() {
     return Talent.deleteAll();
   }
 
-  @Override
   public Uni<Boolean> deleteByIdUni(ObjectId id) {
     return Talent.deleteById(id);
   }

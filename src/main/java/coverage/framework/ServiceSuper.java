@@ -19,33 +19,6 @@ public class ServiceSuper implements ServiceSuperInterface {
   @Inject
   ServiceDelegate delegate;
 
-  @Override
-  public <T extends EntitySuper> Uni<List<T>> listUni() {
-    throw new UnsupportedOperationException(
-      "A ServiceSuper sublcass must implement this method"
-    );
-  }
-
-  public Uni<Long> deleteAllUni() {
-    throw new UnsupportedOperationException(
-      "A ServiceSuper sublcass must implement this method"
-    );
-  }
-
-  public Uni<Boolean> deleteByIdUni(ObjectId id) {
-    throw new UnsupportedOperationException(
-      "A ServiceSuper sublcass must implement this method"
-    );
-  }
-
-  public <T extends EntitySuper> Uni<Optional<T>> findByIdOptionalUni(
-    ObjectId id
-  ) {
-    throw new UnsupportedOperationException(
-      "A ServiceSuper sublcass must implement this method"
-    );
-  }
-
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Uni<Response> list() {
@@ -82,5 +55,32 @@ public class ServiceSuper implements ServiceSuperInterface {
     E updates
   ) {
     return delegate.update(this, id, updates);
+  }
+
+  @Override
+  public <T extends EntitySuper> Uni<List<T>> listUni() {
+    throw new UnsupportedOperationException(
+      "A ServiceSuper sublcass must implement this method"
+    );
+  }
+
+  public Uni<Long> deleteAllUni() {
+    throw new UnsupportedOperationException(
+      "A ServiceSuper sublcass must implement this method"
+    );
+  }
+
+  public Uni<Boolean> deleteByIdUni(ObjectId id) {
+    throw new UnsupportedOperationException(
+      "A ServiceSuper sublcass must implement this method"
+    );
+  }
+
+  public <T extends EntitySuper> Uni<Optional<T>> findByIdOptionalUni(
+    ObjectId id
+  ) {
+    throw new UnsupportedOperationException(
+      "A ServiceSuper sublcass must implement this method"
+    );
   }
 }
