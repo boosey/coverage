@@ -1,5 +1,8 @@
 package coverage;
 
+import coverage.framework.EntityInterface;
+import coverage.framework.EntitySuper;
+
 public class Account extends EntitySuper {
 
   public String name;

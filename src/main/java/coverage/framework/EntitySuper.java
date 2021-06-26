@@ -1,4 +1,4 @@
-package coverage;
+package coverage.framework;
 
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntity;
 

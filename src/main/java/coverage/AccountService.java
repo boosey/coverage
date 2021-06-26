@@ -1,5 +1,8 @@
 package coverage;
 
+import coverage.framework.EntitySuper;
+import coverage.framework.ServiceDelegate;
+import coverage.framework.ServiceInterface;
 import io.smallrye.mutiny.Uni;
 import java.util.List;
 import java.util.Optional;
@@ -59,12 +62,6 @@ public class AccountService implements ServiceInterface {
     return delegate.findById(this, id);
   }
 
-  @POST
-  @Consumes(MediaType.APPLICATION_JSON)
-  public Uni<Response> add(Account account, @Context UriInfo uriInfo) {
-    return delegate.add(this, account, uriInfo);
-  }
-
   @DELETE
   public Uni<Response> delete() {
     return delegate.delete(this);
@@ -76,10 +73,28 @@ public class AccountService implements ServiceInterface {
     return delegate.deleteById(this, id);
   }
 
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  public Uni<Response> addEntity(Account a, @Context UriInfo uriInfo) {
+    return this.add(a, uriInfo);
+  }
+
+  public <E extends EntitySuper> Uni<Response> add(
+    E account,
+    @Context UriInfo uriInfo
+  ) {
+    return delegate.add(this, account, uriInfo);
+  }
+
   @PUT
   @Path("/{id}")
   @Consumes(MediaType.APPLICATION_JSON)
-  public Uni<Response> update(@PathParam("id") String id, Account updates) {
+  public Uni<Response> updateEntity(String id, Account updates) {
+    return this.update(id, updates);
+  }
+
+  @Override
+  public <E extends EntitySuper> Uni<Response> update(String id, E updates) {
     return delegate.update(this, id, updates);
   }
 }

@@ -1,4 +1,4 @@
-package coverage;
+package coverage.framework;
 
 import io.smallrye.mutiny.Uni;
 import java.util.List;
@@ -12,17 +12,17 @@ public interface ServiceInterface {
 
   public Uni<Response> findById(String id);
 
-  public Uni<Response> add(Account account, UriInfo uriInfo);
+  public <E extends EntitySuper> Uni<Response> add(E entity, UriInfo uriInfo);
 
   public Uni<Response> delete();
 
   public Uni<Response> deleteById(String id);
 
-  public Uni<Response> update(String id, Account updates);
+  public <E extends EntitySuper> Uni<Response> update(String id, E updates);
 
-  public <T extends EntitySuper> Uni<List<T>> listUni();
+  public <E extends EntitySuper> Uni<List<E>> listUni();
 
-  public <T extends EntitySuper> Uni<Optional<T>> findByIdOptionalUni(
+  public <E extends EntitySuper> Uni<Optional<E>> findByIdOptionalUni(
     ObjectId id
   );
 
