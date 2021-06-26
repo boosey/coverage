@@ -12,7 +12,7 @@ public class Talent extends EntitySuper {
   public String zip;
 
   public <T extends EntityInterface> void updateFields(T updates) {
-    Account a = (Account) updates;
+    Talent a = (Talent) updates;
     this.name = a.name;
     this.address = a.address;
     this.city = a.city;

@@ -11,7 +11,7 @@ import org.bson.types.ObjectId;
 @ApplicationScoped
 public class ServiceDelegate {
 
-  public <S extends ServiceInterface> Uni<Response> list(S svc) {
+  public <S extends ServiceSuperInterface> Uni<Response> list(S svc) {
     return svc
       .listUni()
       .onItem()
@@ -23,7 +23,10 @@ public class ServiceDelegate {
       );
   }
 
-  public <S extends ServiceInterface> Uni<Response> findById(S svc, String id) {
+  public <S extends ServiceSuperInterface> Uni<Response> findById(
+    S svc,
+    String id
+  ) {
     return svc
       .findByIdOptionalUni(new ObjectId(id))
       .onItem()
@@ -42,7 +45,7 @@ public class ServiceDelegate {
       );
   }
 
-  public <S extends ServiceInterface> Uni<Response> add(
+  public <S extends ServiceSuperInterface> Uni<Response> add(
     S svc,
     ReactivePanacheMongoEntity entity,
     UriInfo uriInfo
@@ -69,7 +72,7 @@ public class ServiceDelegate {
       );
   }
 
-  public <S extends ServiceInterface> Uni<Response> delete(S svc) {
+  public <S extends ServiceSuperInterface> Uni<Response> delete(S svc) {
     return svc
       .deleteAllUni()
       .onItem()
@@ -78,7 +81,7 @@ public class ServiceDelegate {
       .recoverWithItem(Response.status(Status.INTERNAL_SERVER_ERROR).build());
   }
 
-  public <S extends ServiceInterface> Uni<Response> deleteById(
+  public <S extends ServiceSuperInterface> Uni<Response> deleteById(
     S svc,
     String id
   ) {
@@ -98,7 +101,7 @@ public class ServiceDelegate {
       .recoverWithItem(Response.status(Status.INTERNAL_SERVER_ERROR).build());
   }
 
-  public <E extends EntitySuper, S extends ServiceInterface> Uni<Response> update(
+  public <E extends EntitySuper, S extends ServiceSuperInterface> Uni<Response> update(
     S svc,
     String id,
     E updates

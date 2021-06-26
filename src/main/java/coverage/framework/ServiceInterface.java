@@ -4,7 +4,6 @@ import io.smallrye.mutiny.Uni;
 import java.util.List;
 import java.util.Optional;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 import org.bson.types.ObjectId;
 
 public interface ServiceInterface {
@@ -12,13 +11,9 @@ public interface ServiceInterface {
 
   public Uni<Response> findById(String id);
 
-  public <E extends EntitySuper> Uni<Response> add(E entity, UriInfo uriInfo);
-
   public Uni<Response> delete();
 
   public Uni<Response> deleteById(String id);
-
-  public <E extends EntitySuper> Uni<Response> update(String id, E updates);
 
   public <E extends EntitySuper> Uni<List<E>> listUni();
 
