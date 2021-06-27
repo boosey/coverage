@@ -26,7 +26,8 @@ public class ServiceDelegate {
 
   public <S extends ServiceSuper> Uni<Response> findById(S svc, String id) {
     return svc
-      .findByIdOptionalUni(new ObjectId(id))
+      .getFindByIdOptionalUniFunction()
+      .apply(new ObjectId(id))
       .onItem()
       .transform(
         item -> {
@@ -104,7 +105,8 @@ public class ServiceDelegate {
     E updates
   ) {
     return svc
-      .findByIdOptionalUni(new ObjectId(id))
+      .getFindByIdOptionalUniFunction()
+      .apply(new ObjectId(id))
       .onItem()
       .transformToUni(
         // Received an optional from the find, so we have to check if it is present

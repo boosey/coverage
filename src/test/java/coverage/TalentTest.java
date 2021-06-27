@@ -31,20 +31,20 @@ public class TalentTest {
 
   @Test
   public void testTalentsEndpoint() {
-    given().when().get("/accounts").then().statusCode(200);
+    given().when().get("/talent").then().statusCode(200);
   }
 
   @Test
   public void testTalentAddAndDeleteAll() {
     String a = exampleTalentJson();
 
-    given().when().delete("/accounts").then().statusCode(200);
+    given().when().delete("/talent").then().statusCode(200);
 
     String addedTalentURI = given()
       .contentType(ContentType.JSON)
       .body(a)
       .when()
-      .post("/accounts")
+      .post("/talent")
       .then()
       .statusCode(201)
       .extract()
@@ -58,26 +58,26 @@ public class TalentTest {
       .statusCode(200)
       .body("name", equalTo(accountName));
 
-    given().when().delete("/accounts").then().statusCode(200);
+    given().when().delete("/talent").then().statusCode(200);
   }
 
   @Test
   public void getTalent() {
     String a = exampleTalentJson();
 
-    given().when().delete("/accounts").then().statusCode(200);
+    given().when().delete("/talent").then().statusCode(200);
 
     given()
       .contentType(ContentType.JSON)
       .body(a)
       .when()
-      .post("/accounts")
+      .post("/talent")
       .then()
       .statusCode(201);
 
     String id = given()
       .when()
-      .get("/accounts")
+      .get("/talent")
       .then()
       .statusCode(200)
       .extract()
@@ -86,21 +86,21 @@ public class TalentTest {
     given()
       .pathParam("id", id)
       .when()
-      .get("/accounts/{id}")
+      .get("/talent/{id}")
       .then()
       .statusCode(200);
 
-    given().when().delete("/accounts").then().statusCode(200);
+    given().when().delete("/talent").then().statusCode(200);
   }
 
   @Test
   public void failOnBadTalentId() {
-    given().when().delete("/accounts").then().statusCode(200);
+    given().when().delete("/talent").then().statusCode(200);
 
     given()
       .pathParam("id", "60d1434f7fe4d40a3c74d8c7")
       .when()
-      .get("/accounts/{id}")
+      .get("/talent/{id}")
       .then()
       .statusCode(404);
   }
@@ -109,19 +109,19 @@ public class TalentTest {
   public void testDeleteTalent() {
     String a = exampleTalentJson();
 
-    given().when().delete("/accounts").then().statusCode(200);
+    given().when().delete("/talent").then().statusCode(200);
 
     given()
       .contentType(ContentType.JSON)
       .body(a)
       .when()
-      .post("/accounts")
+      .post("/talent")
       .then()
       .statusCode(201);
 
     String id = given()
       .when()
-      .get("/accounts")
+      .get("/talent")
       .then()
       .statusCode(200)
       .extract()
@@ -130,24 +130,24 @@ public class TalentTest {
     given()
       .pathParam("id", id)
       .when()
-      .delete("/accounts/{id}")
+      .delete("/talent/{id}")
       .then()
       .statusCode(200);
 
-    given().when().delete("/accounts").then().statusCode(200);
+    given().when().delete("/talent").then().statusCode(200);
   }
 
   @Test
   public void testUpdateTalent() {
     String a = exampleTalentJson();
 
-    given().when().delete("/accounts").then().statusCode(200);
+    given().when().delete("/talent").then().statusCode(200);
 
     String addedTalentURI = given()
       .contentType(ContentType.JSON)
       .body(a)
       .when()
-      .post("/accounts")
+      .post("/talent")
       .then()
       .statusCode(201)
       .extract()
@@ -191,6 +191,6 @@ public class TalentTest {
       .statusCode(200)
       .body("name", equalTo(newName));
 
-    given().when().delete("/accounts").then().statusCode(200);
+    given().when().delete("/talent").then().statusCode(200);
   }
 }

@@ -20,16 +20,18 @@ public class ServiceSuper implements ServiceSuperInterface {
   ServiceDelegate delegate;
 
   private ListAllUniFunction listAllUniFunction;
-  // private FindByIdOptionalUniFunction findByIdOptionalUniFunction;
+  private FindByIdOptionalUniFunction findByIdOptionalUniFunction;
   private DeleteAllUniFunction deleteAllUniFunction;
   private DeleteByIdUniFunction deleteByIdUniFunction;
 
   public ServiceSuper(
     ListAllUniFunction listAllUniFunction,
+    FindByIdOptionalUniFunction findByIdOptionalUniFunction,
     DeleteAllUniFunction deleteAllUniFunction,
     DeleteByIdUniFunction deleteByIdUniFunction
   ) {
     this.listAllUniFunction = listAllUniFunction;
+    this.findByIdOptionalUniFunction = findByIdOptionalUniFunction;
     this.deleteAllUniFunction = deleteAllUniFunction;
     this.deleteByIdUniFunction = deleteByIdUniFunction;
   }
@@ -38,9 +40,9 @@ public class ServiceSuper implements ServiceSuperInterface {
     return listAllUniFunction;
   }
 
-  // public FindByIdOptionalUniFunction getFindByIdOptionalUniFunction() {
-  //   return findByIdOptionalUniFunction;
-  // }
+  public FindByIdOptionalUniFunction getFindByIdOptionalUniFunction() {
+    return findByIdOptionalUniFunction;
+  }
 
   public DeleteAllUniFunction getDeleteAllUniFunction() {
     return deleteAllUniFunction;

@@ -5,5 +5,5 @@ import java.util.Optional;
 import org.bson.types.ObjectId;
 
 public interface FindByIdOptionalUniFunction {
-  public <E extends EntitySuper> Uni<Optional<E>> apply(ObjectId id);
+  public Uni<Optional<EntitySuper>> apply(ObjectId id);
 }
