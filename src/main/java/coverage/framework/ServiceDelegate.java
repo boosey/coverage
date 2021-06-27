@@ -11,9 +11,10 @@ import org.bson.types.ObjectId;
 @ApplicationScoped
 public class ServiceDelegate {
 
-  public <S extends ServiceSuperInterface> Uni<Response> list(S svc) {
+  public <S extends ServiceSuper> Uni<Response> list(S svc) {
     return svc
-      .listUni()
+      .getListAllUniFunction()
+      .apply()
       .onItem()
       .transform(items -> Response.ok().entity(items).build())
       .onFailure()
@@ -23,10 +24,7 @@ public class ServiceDelegate {
       );
   }
 
-  public <S extends ServiceSuperInterface> Uni<Response> findById(
-    S svc,
-    String id
-  ) {
+  public <S extends ServiceSuper> Uni<Response> findById(S svc, String id) {
     return svc
       .findByIdOptionalUni(new ObjectId(id))
       .onItem()
@@ -72,21 +70,20 @@ public class ServiceDelegate {
       );
   }
 
-  public <S extends ServiceSuperInterface> Uni<Response> delete(S svc) {
+  public <S extends ServiceSuper> Uni<Response> delete(S svc) {
     return svc
-      .deleteAllUni()
+      .getDeleteAllUniFunction()
+      .apply()
       .onItem()
       .transform(count -> Response.ok().entity(count).build())
       .onFailure()
       .recoverWithItem(Response.status(Status.INTERNAL_SERVER_ERROR).build());
   }
 
-  public <S extends ServiceSuperInterface> Uni<Response> deleteById(
-    S svc,
-    String id
-  ) {
+  public <S extends ServiceSuper> Uni<Response> deleteById(S svc, String id) {
     return svc
-      .deleteByIdUni(new ObjectId(id))
+      .getDeleteByIdUniFunction()
+      .apply(new ObjectId(id))
       .onItem()
       .transform(
         succeeded -> {
@@ -101,7 +98,7 @@ public class ServiceDelegate {
       .recoverWithItem(Response.status(Status.INTERNAL_SERVER_ERROR).build());
   }
 
-  public <E extends EntitySuper, S extends ServiceSuperInterface> Uni<Response> update(
+  public <E extends EntitySuper, S extends ServiceSuper> Uni<Response> update(
     S svc,
     String id,
     E updates

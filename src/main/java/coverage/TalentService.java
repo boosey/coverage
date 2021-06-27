@@ -4,7 +4,6 @@ import coverage.framework.EntitySuper;
 import coverage.framework.ServiceInterface;
 import coverage.framework.ServiceSuper;
 import io.smallrye.mutiny.Uni;
-import java.util.List;
 import java.util.Optional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -19,22 +18,18 @@ import org.bson.types.ObjectId;
 @Path("/talent")
 public class TalentService extends ServiceSuper implements ServiceInterface {
 
-  public <T extends EntitySuper> Uni<List<T>> listUni() {
-    return Talent.listAll();
+  TalentService() {
+    super(
+      () -> Talent.listAll(),
+      () -> Talent.deleteAll(),
+      (ObjectId id) -> Talent.deleteById(id)
+    );
   }
 
   public <T extends EntitySuper> Uni<Optional<T>> findByIdOptionalUni(
     ObjectId id
   ) {
     return Talent.findByIdOptional(id);
-  }
-
-  public Uni<Long> deleteAllUni() {
-    return Talent.deleteAll();
-  }
-
-  public Uni<Boolean> deleteByIdUni(ObjectId id) {
-    return Talent.deleteById(id);
   }
 
   @POST

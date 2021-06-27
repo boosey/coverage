@@ -4,7 +4,6 @@ import coverage.framework.EntitySuper;
 import coverage.framework.ServiceInterface;
 import coverage.framework.ServiceSuper;
 import io.smallrye.mutiny.Uni;
-import java.util.List;
 import java.util.Optional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -19,22 +18,18 @@ import org.bson.types.ObjectId;
 @Path("/accounts")
 public class AccountService extends ServiceSuper implements ServiceInterface {
 
-  public <T extends EntitySuper> Uni<List<T>> listUni() {
-    return Account.listAll();
+  AccountService() {
+    super(
+      () -> Account.listAll(),
+      () -> Account.deleteAll(),
+      (ObjectId id) -> Account.deleteById(id)
+    );
   }
 
   public <T extends EntitySuper> Uni<Optional<T>> findByIdOptionalUni(
     ObjectId id
   ) {
     return Account.findByIdOptional(id);
-  }
-
-  public Uni<Long> deleteAllUni() {
-    return Account.deleteAll();
-  }
-
-  public Uni<Boolean> deleteByIdUni(ObjectId id) {
-    return Account.deleteById(id);
   }
 
   @POST

@@ -19,6 +19,41 @@ public class ServiceSuper implements ServiceSuperInterface {
   @Inject
   ServiceDelegate delegate;
 
+  private ListAllUniFunction listAllUniFunction;
+  // private FindByIdOptionalUniFunction findByIdOptionalUniFunction;
+  private DeleteAllUniFunction deleteAllUniFunction;
+  private DeleteByIdUniFunction deleteByIdUniFunction;
+
+  public ServiceSuper(
+    ListAllUniFunction listAllUniFunction,
+    DeleteAllUniFunction deleteAllUniFunction,
+    DeleteByIdUniFunction deleteByIdUniFunction
+  ) {
+    this.listAllUniFunction = listAllUniFunction;
+    this.deleteAllUniFunction = deleteAllUniFunction;
+    this.deleteByIdUniFunction = deleteByIdUniFunction;
+  }
+
+  public ListAllUniFunction getListAllUniFunction() {
+    return listAllUniFunction;
+  }
+
+  // public FindByIdOptionalUniFunction getFindByIdOptionalUniFunction() {
+  //   return findByIdOptionalUniFunction;
+  // }
+
+  public DeleteAllUniFunction getDeleteAllUniFunction() {
+    return deleteAllUniFunction;
+  }
+
+  public DeleteByIdUniFunction getDeleteByIdUniFunction() {
+    return deleteByIdUniFunction;
+  }
+
+  Uni<List<EntitySuper>> listAllUni() {
+    return listAllUniFunction.apply();
+  }
+
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public Uni<Response> list() {
