@@ -108,17 +108,21 @@ public class AccountService extends ServiceSuper implements ServiceInterface {
       )
       .asTuple()
       .onItem()
-      .<Response>transformToUni(
+      .transformToUni(
         tuple -> {
           if (tuple.getItem1().isPresent() && tuple.getItem2().isPresent()) {
             Account account = tuple.getItem1().get();
             Talent talent = tuple.getItem2().get();
             account.assignTalent(talent);
+            talent.assignAccount(account);
 
-            return account
-              .update()
+            return Uni
+              .combine()
+              .all()
+              .unis(account.update(), talent.update())
+              .asTuple()
               .onItem()
-              .transform(v1 -> Response.ok().build())
+              .transform(v -> Response.ok().build())
               .onFailure()
               .recoverWithItem(
                 error ->

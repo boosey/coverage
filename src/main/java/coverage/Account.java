@@ -4,6 +4,7 @@ import coverage.framework.EntityInterface;
 import coverage.framework.EntitySuper;
 import java.util.ArrayList;
 import java.util.List;
+import javax.persistence.OneToMany;
 
 public class Account extends EntitySuper {
 
@@ -13,6 +14,7 @@ public class Account extends EntitySuper {
   public String state;
   public String zip;
 
+  @OneToMany
   public List<Talent> assignedTalent;
 
   public Account() {
