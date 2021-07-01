@@ -5,6 +5,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
+import io.restassured.response.ValidatableResponse;
 import javax.inject.Inject;
 import org.jboss.logging.Logger;
 import org.json.JSONObject;
@@ -29,148 +30,114 @@ public class AccountsTest {
       .toString();
   }
 
+  String exampleTalentJson() {
+    return new JSONObject()
+      .put("name", accountName)
+      .put("address", "Main St")
+      .put("city", "Baton Rouge")
+      .put("state", "LA")
+      .put("zip", "70113")
+      .toString();
+  }
+
   @Test
   public void testAccountsEndpoint() {
     given().when().get("/accounts").then().statusCode(200);
   }
 
-  @Test
-  public void testAccountAddAndDeleteAll() {
-    String a = exampleAccountJson();
-
+  void deleteAllAccounts() {
     given().when().delete("/accounts").then().statusCode(200);
+  }
 
-    String addedAccountURI = given()
+  String addResource(String uri, String json) {
+    return given()
       .contentType(ContentType.JSON)
-      .body(a)
+      .body(json)
       .when()
-      .post("/accounts")
+      .post(uri)
       .then()
       .statusCode(201)
       .extract()
       .response()
       .asString();
+  }
 
-    given()
+  ValidatableResponse getResource(String uri) {
+    return given().when().get(uri).then().statusCode(200);
+  }
+
+  ValidatableResponse getResourceWithPathParam(
+    String uri,
+    String paramName,
+    String param,
+    Integer statusCode
+  ) {
+    return given()
+      .pathParam(paramName, param)
       .when()
-      .get(addedAccountURI)
+      .get(uri)
       .then()
-      .statusCode(200)
-      .body("name", equalTo(accountName));
+      .statusCode(statusCode);
+  }
 
-    given().when().delete("/accounts").then().statusCode(200);
+  @Test
+  public void testAccountAddAndDeleteAll() {
+    deleteAllAccounts();
+
+    String addedAccountURI = addResource("/accounts", exampleAccountJson());
+
+    getResource(addedAccountURI).body("name", equalTo(accountName));
+
+    deleteAllAccounts();
   }
 
   @Test
   public void getAccount() {
-    String a = exampleAccountJson();
+    deleteAllAccounts();
 
-    given().when().delete("/accounts").then().statusCode(200);
+    addResource("/accounts", exampleAccountJson());
 
-    given()
-      .contentType(ContentType.JSON)
-      .body(a)
-      .when()
-      .post("/accounts")
-      .then()
-      .statusCode(201);
+    String id = getResource("/accounts").extract().path("[0].id");
 
-    String id = given()
-      .when()
-      .get("/accounts")
-      .then()
-      .statusCode(200)
-      .extract()
-      .path("[0].id");
+    getResourceWithPathParam("/accounts/{id}", "id", id, 200);
 
-    given()
-      .pathParam("id", id)
-      .when()
-      .get("/accounts/{id}")
-      .then()
-      .statusCode(200);
-
-    given().when().delete("/accounts").then().statusCode(200);
+    deleteAllAccounts();
   }
 
   @Test
   public void failOnBadAccountId() {
-    given().when().delete("/accounts").then().statusCode(200);
+    deleteAllAccounts();
 
-    given()
-      .pathParam("id", "60d1434f7fe4d40a3c74d8c7")
-      .when()
-      .get("/accounts/{id}")
-      .then()
-      .statusCode(404);
+    getResourceWithPathParam(
+      "/accounts/{id}",
+      "id",
+      "60d1434f7fe4d40a3c74d8c7",
+      404
+    );
   }
 
   @Test
   public void testDeleteAccount() {
-    String a = exampleAccountJson();
+    deleteAllAccounts();
 
-    given().when().delete("/accounts").then().statusCode(200);
+    addResource("/accounts", exampleAccountJson());
 
-    given()
-      .contentType(ContentType.JSON)
-      .body(a)
-      .when()
-      .post("/accounts")
-      .then()
-      .statusCode(201);
+    String id = getResource("/accounts").extract().path("[0].id");
 
-    String id = given()
-      .when()
-      .get("/accounts")
-      .then()
-      .statusCode(200)
-      .extract()
-      .path("[0].id");
+    getResourceWithPathParam("/accounts/{id}", "id", id, 200);
 
-    given()
-      .pathParam("id", id)
-      .when()
-      .delete("/accounts/{id}")
-      .then()
-      .statusCode(200);
-
-    given().when().delete("/accounts").then().statusCode(200);
+    deleteAllAccounts();
   }
 
   @Test
   public void testUpdateAccount() {
-    String a = exampleAccountJson();
+    deleteAllAccounts();
 
-    given().when().delete("/accounts").then().statusCode(200);
+    String addedAccountURI = addResource("/accounts", exampleAccountJson());
 
-    String addedAccountURI = given()
-      .contentType(ContentType.JSON)
-      .body(a)
-      .when()
-      .post("/accounts")
-      .then()
-      .statusCode(201)
-      .extract()
-      .response()
-      .asString();
+    getResource(addedAccountURI);
 
-    given()
-      .when()
-      .get(addedAccountURI)
-      .then()
-      .statusCode(200)
-      .body("name", equalTo(accountName));
-
-    log.info("GETTING ADDED ACCOUNT");
-
-    String r = given()
-      .when()
-      .get(addedAccountURI)
-      .then()
-      .statusCode(200)
-      .extract()
-      .body()
-      .asString();
+    String r = getResource(addedAccountURI).extract().body().asString();
 
     JSONObject j = new JSONObject(r);
     j.put("name", newName);
@@ -184,13 +151,33 @@ public class AccountsTest {
       .then()
       .statusCode(200);
 
-    given()
-      .when()
-      .get(addedAccountURI)
-      .then()
-      .statusCode(200)
-      .body("name", equalTo(newName));
+    getResource(addedAccountURI).body("name", equalTo(newName));
 
-    given().when().delete("/accounts").then().statusCode(200);
+    deleteAllAccounts();
+  }
+
+  @Test
+  public void testAssignSquadManager() {
+    deleteAllAccounts();
+    given().when().delete("/talent").then().statusCode(200);
+
+    String addedAccountURI = addResource("/accounts", exampleAccountJson());
+
+    String addedTalentURI = addResource("/talent", exampleTalentJson());
+
+    String t1 = getResource(addedTalentURI).extract().body().asString();
+
+    JSONObject tj = new JSONObject(t1);
+
+    given()
+      .contentType(ContentType.JSON)
+      .when()
+      .post(addedAccountURI + "/squadManager/" + tj.get("id"))
+      .then()
+      .statusCode(200);
+
+    getResource(addedAccountURI).body("squadManagerId", equalTo(tj.get("id")));
+
+    deleteAllAccounts();
   }
 }
