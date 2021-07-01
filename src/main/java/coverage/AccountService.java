@@ -3,7 +3,9 @@ package coverage;
 import coverage.framework.ServiceInterface;
 import coverage.framework.ServiceSuper;
 import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.tuples.Tuple2;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -41,60 +43,7 @@ public class AccountService extends ServiceSuper implements ServiceInterface {
   }
 
   @POST
-  @Path("/{accountId}/assignTalent2/{talentId}")
-  public Uni<Response> assignTalent2(
-    @PathParam("accountId") String accountId,
-    @PathParam("talentId") String talentId
-  ) {
-    return Talent
-      .findByIdOptional(new ObjectId(talentId))
-      .onItem()
-      .transformToUni(
-        talentOptional -> {
-          if (talentOptional.isPresent()) {
-            return Account
-              .findByIdOptional(new ObjectId(accountId))
-              .onItem()
-              .transformToUni(
-                accountOptional -> {
-                  if (accountOptional.isPresent()) {
-                    Account account = (Account) accountOptional.get();
-                    Talent talent = (Talent) talentOptional.get();
-                    account.assignedTalent.add(talent);
-                    return account
-                      .update()
-                      .onItem()
-                      .<Response>transform(v -> Response.ok().build());
-                  } else {
-                    return Uni
-                      .createFrom()
-                      .item(
-                        Response
-                          .status(Status.NOT_FOUND)
-                          .entity("Account not found")
-                          .build()
-                      );
-                  }
-                }
-              );
-          } else {
-            return Uni
-              .createFrom()
-              .item(
-                Response
-                  .status(Status.NOT_FOUND)
-                  .entity("Talent not found")
-                  .build()
-              );
-          }
-        }
-      )
-      .onFailure()
-      .recoverWithItem(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-  }
-
-  @POST
-  @Path("/{accountId}/assignTalent/{talentId}")
+  @Path("/{accountId}/squadManager/{talentId}")
   public Uni<Response> assignTalent(
     @PathParam("accountId") String accountId,
     @PathParam("talentId") String talentId
@@ -108,40 +57,33 @@ public class AccountService extends ServiceSuper implements ServiceInterface {
       )
       .asTuple()
       .onItem()
-      .transformToUni(
+      .transform(
         tuple -> {
           if (tuple.getItem1().isPresent() && tuple.getItem2().isPresent()) {
-            Account account = tuple.getItem1().get();
-            Talent talent = tuple.getItem2().get();
-            account.assignTalent(talent);
-            talent.assignAccount(account);
-
-            return Uni
-              .combine()
-              .all()
-              .unis(account.update(), talent.update())
-              .asTuple()
-              .onItem()
-              .transform(v -> Response.ok().build())
-              .onFailure()
-              .recoverWithItem(
-                error ->
-                  Response
-                    .status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(error)
-                    .build()
-              );
+            return Tuple2.of(
+              tuple.getItem1().get(),
+              tuple.getItem2().get().id.toString()
+            );
           } else {
-            return Uni
-              .createFrom()
-              .item(Response.status(Status.NOT_FOUND).build());
+            throw new NotFoundException();
           }
         }
       )
+      .onItem()
+      .transformToUni(
+        tuple -> {
+          Account a = tuple.getItem1();
+          a.squadManagerId = tuple.getItem2();
+          return a.update();
+        }
+      )
+      .onItem()
+      .transform(v -> Response.ok().build())
+      .onFailure(error -> error.getClass() == NotFoundException.class)
+      .recoverWithItem(Response.status(Status.NOT_FOUND).build())
       .onFailure()
       .recoverWithItem(
-        error ->
-          Response.status(Status.INTERNAL_SERVER_ERROR).entity(error).build()
+        err -> Response.status(Status.INTERNAL_SERVER_ERROR).entity(err).build()
       );
   }
 }

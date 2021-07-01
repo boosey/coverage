@@ -3,6 +3,7 @@ package coverage.framework;
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntity;
 import io.smallrye.mutiny.Uni;
 import javax.enterprise.context.ApplicationScoped;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
@@ -108,51 +109,26 @@ public class ServiceDelegate {
       .getFindByIdOptionalUniFunction()
       .apply(new ObjectId(id))
       .onItem()
-      .transformToUni(
-        // Received an optional from the find, so we have to check if it is present
-        itemOptional -> {
-          if (itemOptional.isPresent()) {
-            /* 
-            We found the account. Get the account object from the optional. a1 is linked to the database and it has all the current values of the record. 
-            */
-            EntitySuper item = itemOptional.get();
-
-            /* 
-            Update the fields of a1 with all the fields from the account passed into the method (a)
-            */
-
-            item.updateFields(updates);
-
-            /* 
-            Now we can update the database with the values in the linked account (a1). This is a reactive call, and so we have to handle its completion (onItem) and return the appropriate Response. 
-            
-            If something went wrong (onFailure), we know it cannot be that the record doesn't exist because we are only in this code if it does exist. So, the error must be something more catastrphic. This onFailure could occur if the network crashed in-between the call to findByIdOptional and a1.update. 
-            */
-            return item
-              .update()
-              .onItem()
-              .transform(v -> Response.ok().build())
-              .onFailure()
-              .recoverWithItem(
-                error ->
-                  Response
-                    .status(Status.INTERNAL_SERVER_ERROR)
-                    .entity(error)
-                    .build()
-              );
+      .transform(
+        itemOpt -> {
+          if (itemOpt.isPresent()) {
+            return itemOpt.get();
           } else {
-            /* 
-            This else clause gets executed only if the findByIdOptional returns an Optional with no Account inside - meaning the accountId passed in does not exist in the database. 
-            */
-            return Uni
-              .createFrom()
-              .item(Response.status(Status.NOT_FOUND).build());
+            throw new NotFoundException();
           }
         }
       )
-      /* 
-      This onFailure clause is on the findByIdOptional call. Remember, that method will always return an Optional (with a value present or not) unless there is some catastrophic error. 
-      */
+      .onItem()
+      .transformToUni(
+        item -> {
+          item.updateFields(updates);
+          return item.update();
+        }
+      )
+      .onItem()
+      .transform(v -> Response.ok().build())
+      .onFailure(error -> error.getClass() == NotFoundException.class)
+      .recoverWithItem(Response.status(Status.NOT_FOUND).build())
       .onFailure()
       .recoverWithItem(
         err -> Response.status(Status.INTERNAL_SERVER_ERROR).entity(err).build()
