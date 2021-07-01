@@ -2,9 +2,6 @@ package coverage;
 
 import coverage.framework.EntityInterface;
 import coverage.framework.EntitySuper;
-import java.util.ArrayList;
-import java.util.List;
-import javax.persistence.OneToMany;
 
 public class Account extends EntitySuper {
 
@@ -13,13 +10,9 @@ public class Account extends EntitySuper {
   public String city;
   public String state;
   public String zip;
-
-  @OneToMany
-  public List<Talent> assignedTalent;
-
-  public Account() {
-    assignedTalent = new ArrayList<Talent>();
-  }
+  public String squadManagerId;
+  public String designManager;
+  public String btcManagerId;
 
   public <T extends EntityInterface> void updateFields(T updates) {
     Account a = (Account) updates;
@@ -28,11 +21,9 @@ public class Account extends EntitySuper {
     this.city = a.city;
     this.state = a.state;
     this.zip = a.zip;
-    return;
-  }
-
-  void assignTalent(Talent talent) {
-    assignedTalent.add(talent);
+    this.squadManagerId = a.squadManagerId;
+    this.designManager = a.designManager;
+    this.btcManagerId = a.btcManagerId;
     return;
   }
 }

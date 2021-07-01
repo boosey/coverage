@@ -2,6 +2,8 @@ package coverage;
 
 import coverage.framework.EntityInterface;
 import coverage.framework.EntitySuper;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Talent extends EntitySuper {
 
@@ -23,6 +25,7 @@ public class Talent extends EntitySuper {
   public String state;
   public String zip;
   public TalentRole role;
+  public List<String> accountIds = new ArrayList<>();
 
   public <T extends EntityInterface> void updateFields(T updates) {
     Talent a = (Talent) updates;
@@ -35,7 +38,7 @@ public class Talent extends EntitySuper {
     return;
   }
 
-  public void assignAccount(Account account) {
-    return;
+  public void assignAccount(String accountId) {
+    accountIds.add(accountId);
   }
 }
