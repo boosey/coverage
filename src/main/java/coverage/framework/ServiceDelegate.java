@@ -2,6 +2,8 @@ package coverage.framework;
 
 import io.quarkus.mongodb.panache.reactive.ReactivePanacheMongoEntity;
 import io.smallrye.mutiny.Uni;
+import io.smallrye.mutiny.tuples.Tuple2;
+import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
@@ -123,6 +125,48 @@ public class ServiceDelegate {
         item -> {
           item.updateFields(updates);
           return item.update();
+        }
+      )
+      .onItem()
+      .transform(v -> Response.ok().build())
+      .onFailure(error -> error.getClass() == NotFoundException.class)
+      .recoverWithItem(Response.status(Status.NOT_FOUND).build())
+      .onFailure()
+      .recoverWithItem(
+        err -> Response.status(Status.INTERNAL_SERVER_ERROR).entity(err).build()
+      );
+  }
+
+  public <P extends EntitySuper, C extends EntitySuper> Uni<Response> assignRelation(
+    Uni<Optional<P>> parent,
+    Uni<Optional<C>> child,
+    AssignRelationFunction assign
+  ) {
+    return Uni
+      .combine()
+      .all()
+      .unis(parent, child)
+      .asTuple()
+      .onItem()
+      .transform(
+        tuple -> {
+          if (tuple.getItem1().isPresent() && tuple.getItem2().isPresent()) {
+            return Tuple2.of(
+              tuple.getItem1().get(),
+              tuple.getItem2().get().id.toString()
+            );
+          } else {
+            throw new NotFoundException();
+          }
+        }
+      )
+      .onItem()
+      .transformToUni(
+        tuple -> {
+          EntitySuper p = tuple.getItem1();
+          String relatedId = tuple.getItem2();
+          assign.relation(Optional.of(p), relatedId);
+          return p.update();
         }
       )
       .onItem()
