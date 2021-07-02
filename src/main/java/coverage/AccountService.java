@@ -42,13 +42,49 @@ public class AccountService extends ServiceSuper implements ServiceInterface {
 
   @POST
   @Path("/{accountId}/squadManager/{talentId}")
-  public Uni<Response> assignTalent(
+  public Uni<Response> assignSquadManager(
     @PathParam("accountId") String accountId,
     @PathParam("talentId") String talentId
   ) {
     AssignRelationFunction assign = (parent, childId) -> {
       Account account = (Account) parent;
       account.squadManagerId = childId;
+    };
+
+    return this.assignRelation(
+        Account.findByIdOptional(new ObjectId(accountId)),
+        Talent.findByIdOptional(new ObjectId(talentId)),
+        assign
+      );
+  }
+
+  @POST
+  @Path("/{accountId}/designManager/{talentId}")
+  public Uni<Response> assignDesignManager(
+    @PathParam("accountId") String accountId,
+    @PathParam("talentId") String talentId
+  ) {
+    AssignRelationFunction assign = (parent, childId) -> {
+      Account account = (Account) parent;
+      account.designManagerId = childId;
+    };
+
+    return this.assignRelation(
+        Account.findByIdOptional(new ObjectId(accountId)),
+        Talent.findByIdOptional(new ObjectId(talentId)),
+        assign
+      );
+  }
+
+  @POST
+  @Path("/{accountId}/btcManager/{talentId}")
+  public Uni<Response> assignBTCManager(
+    @PathParam("accountId") String accountId,
+    @PathParam("talentId") String talentId
+  ) {
+    AssignRelationFunction assign = (parent, childId) -> {
+      Account account = (Account) parent;
+      account.btcManagerId = childId;
     };
 
     return this.assignRelation(

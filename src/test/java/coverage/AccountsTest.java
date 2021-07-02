@@ -49,6 +49,10 @@ public class AccountsTest {
     given().when().delete("/accounts").then().statusCode(200);
   }
 
+  void deleteAllTalent() {
+    given().when().delete("/talent").then().statusCode(200);
+  }
+
   String addResource(String uri, String json) {
     return given()
       .contentType(ContentType.JSON)
@@ -157,7 +161,7 @@ public class AccountsTest {
   }
 
   @Test
-  public void testAssignSquadManager() {
+  public void testAssignManagers() {
     deleteAllAccounts();
     given().when().delete("/talent").then().statusCode(200);
 
@@ -178,6 +182,25 @@ public class AccountsTest {
 
     getResource(addedAccountURI).body("squadManagerId", equalTo(tj.get("id")));
 
+    given()
+      .contentType(ContentType.JSON)
+      .when()
+      .post(addedAccountURI + "/designManager/" + tj.get("id"))
+      .then()
+      .statusCode(200);
+
+    getResource(addedAccountURI).body("designManagerId", equalTo(tj.get("id")));
+
+    given()
+      .contentType(ContentType.JSON)
+      .when()
+      .post(addedAccountURI + "/btcManager/" + tj.get("id"))
+      .then()
+      .statusCode(200);
+
+    getResource(addedAccountURI).body("btcManagerId", equalTo(tj.get("id")));
+
     deleteAllAccounts();
+    deleteAllTalent();
   }
 }
