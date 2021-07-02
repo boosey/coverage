@@ -165,7 +165,7 @@ public class ServiceDelegate {
         tuple -> {
           EntitySuper p = tuple.getItem1();
           String relatedId = tuple.getItem2();
-          assign.relation(Optional.of(p), relatedId);
+          assign.relation(p, relatedId);
           return p.update();
         }
       )

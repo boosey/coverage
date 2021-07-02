@@ -47,7 +47,7 @@ public class AccountService extends ServiceSuper implements ServiceInterface {
     @PathParam("talentId") String talentId
   ) {
     AssignRelationFunction assign = (parent, childId) -> {
-      Account account = (Account) parent.get();
+      Account account = (Account) parent;
       account.squadManagerId = childId;
     };
 
